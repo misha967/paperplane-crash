@@ -8,18 +8,18 @@
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
     :root {
-      --bg: #060610;
-      --surface: #0d0d20;
-      --surface2: #13132a;
-      --border: #1e1e40;
+      --bg: #0e0e1f;
+      --surface: #181830;
+      --surface2: #1f1f3a;
+      --border: #2e2e55;
       --green: #00f0a0;
       --green-dim: #00f0a033;
       --red: #ff3a5c;
       --red-dim: #ff3a5c33;
       --yellow: #ffd60a;
-      --blue: #4488ff;
+      --blue: #5599ff;
       --text: #ffffff;
-      --muted: #9999cc;
+      --muted: #aaaacc;
       --font-main: 'Rajdhani', sans-serif;
       --font-mono: 'Space Mono', monospace;
     }
@@ -45,7 +45,7 @@
       height: 100dvh;
       gap: 12px;
       padding: 24px;
-      background: radial-gradient(ellipse at center, #0d0d30 0%, #060610 70%);
+      background: radial-gradient(ellipse at center, #1a1a40 0%, #0e0e1f 70%);
     }
     .auth-logo {
       font-family: var(--font-main);
@@ -140,9 +140,9 @@
       flex-shrink: 0;
       transition: all 0.2s;
     }
-    .crash-low { background: #2a0810; color: var(--red); }
-    .crash-mid { background: #0a2a18; color: var(--green); }
-    .crash-high { background: #0a1535; color: var(--blue); }
+    .crash-low { background: #3a1020; color: var(--red); }
+    .crash-mid { background: #0f3525; color: var(--green); }
+    .crash-high { background: #0f1f45; color: var(--blue); }
 
     /* ══ MAIN LAYOUT ══ */
     .main-layout { display: flex; flex: 1; overflow: hidden; }
@@ -486,7 +486,7 @@
       font-size: 0.77rem;
       gap: 4px;
     }
-    .bet-item.cashed { background: #0a2018; }
+    .bet-item.cashed { background: #0f3020; }
     .bet-user { font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bet-amount { color: var(--yellow); flex-shrink: 0; font-family: var(--font-mono); font-size: 0.72rem; }
     .bet-status { flex-shrink: 0; font-size: 0.72rem; }
@@ -593,6 +593,12 @@
     @media (min-width: 641px) {
       .mobile-tabs-wrap { display: none; }
     }
+
+    @keyframes btnBlink {
+      0%, 100% { box-shadow: 0 0 0px var(--green); opacity: 1; }
+      50%       { box-shadow: 0 0 18px var(--green); opacity: 0.75; }
+    }
+    .btn-blink { animation: btnBlink 0.9s ease-in-out infinite; }
 
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1236,7 +1242,7 @@
 
   function drawGrid() {
     const w = canvas.width, h = canvas.height;
-    ctx2d.strokeStyle = '#0f0f28';
+    ctx2d.strokeStyle = '#191932';
     ctx2d.lineWidth = 1;
     for (let x = 0; x < w; x += 45) {
       ctx2d.beginPath(); ctx2d.moveTo(x, 0); ctx2d.lineTo(x, h); ctx2d.stroke();
@@ -1392,6 +1398,80 @@
     ctx2d.shadowBlur = 0;
     ctx2d.font = '24px serif';
     ctx2d.fillText('🚀', 20, h - 20);
+  }
+
+  // Betting phase canvas countdown
+  let bettingAnimFrame = null;
+  let bettingEndTime = 0;
+
+  function startBettingCountdownCanvas(durationMs) {
+    bettingEndTime = performance.now() + durationMs;
+    if (bettingAnimFrame) cancelAnimationFrame(bettingAnimFrame);
+
+    function loop() {
+      if (gamePhase !== 'betting') return;
+      const remaining = Math.max(0, bettingEndTime - performance.now());
+      const w = canvas.width, h = canvas.height;
+      ctx2d.clearRect(0, 0, w, h);
+      drawGrid();
+      drawStars(false);
+
+      // Circular progress ring
+      const sec = remaining / 1000;
+      const total = durationMs / 1000;
+      const progress = remaining / durationMs; // 1→0
+      const cx = w / 2, cy = h / 2;
+      const r = Math.min(w, h) * 0.18;
+
+      // Background ring
+      ctx2d.beginPath();
+      ctx2d.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx2d.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx2d.lineWidth = 6;
+      ctx2d.stroke();
+
+      // Progress arc (green → yellow → red as time runs out)
+      const hue = progress > 0.5 ? 150 : progress > 0.25 ? 50 : 0;
+      const arcColor = `hsl(${hue}, 100%, 55%)`;
+      ctx2d.beginPath();
+      ctx2d.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (1 - progress) * Math.PI * 2, false);
+      ctx2d.strokeStyle = arcColor;
+      ctx2d.lineWidth = 6;
+      ctx2d.lineCap = 'round';
+      ctx2d.stroke();
+
+      // Countdown number
+      const displaySec = Math.ceil(sec);
+      const numSize = Math.min(w, h) * 0.12;
+      ctx2d.save();
+      ctx2d.font = `700 ${numSize}px 'Space Mono', monospace`;
+      ctx2d.textAlign = 'center';
+      ctx2d.textBaseline = 'middle';
+      ctx2d.fillStyle = arcColor;
+      // Pulse scale: bigger at each new second
+      const frac = sec - Math.floor(sec); // 0→1 within each second
+      const pulse = 1 + (1 - frac) * 0.15;
+      ctx2d.save();
+      ctx2d.translate(cx, cy);
+      ctx2d.scale(pulse, pulse);
+      ctx2d.fillText(displaySec, 0, 0);
+      ctx2d.restore();
+
+      // "MISEZ !" label below
+      const labelSize = Math.min(w, h) * 0.035;
+      ctx2d.font = `700 ${labelSize}px 'Rajdhani', sans-serif`;
+      ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx2d.fillText('MISEZ !', cx, cy + r + labelSize * 1.6);
+      ctx2d.restore();
+
+      // Rocket at bottom left
+      ctx2d.shadowBlur = 0;
+      ctx2d.font = '24px serif';
+      ctx2d.fillText('🚀', 20, h - 20);
+
+      if (remaining > 0) bettingAnimFrame = requestAnimationFrame(loop);
+    }
+    loop();
   }
 
   let animFrame = null;
@@ -1749,6 +1829,13 @@
     resetCanvas();
     updateBtn();
 
+    // Canvas countdown
+    const dur = data.duration || 5000;
+    startBettingCountdownCanvas(dur);
+
+    // Button blink (only if player hasn't bet yet)
+    document.getElementById('main-btn').classList.add('btn-blink');
+
     // Auto-bet
     if (autoBetEnabled && lastBetAmount > 0 && token) {
       setTimeout(() => {
@@ -1759,7 +1846,7 @@
     }
 
     if (countdownInterval) clearInterval(countdownInterval);
-    let sec = Math.ceil((data.duration || 5000) / 1000);
+    let sec = Math.ceil(dur / 1000);
     document.getElementById('countdown').textContent = '🕐 ' + sec + 's';
     countdownInterval = setInterval(() => {
       sec--;
@@ -1773,6 +1860,9 @@
     document.getElementById('status-text').textContent = '🚀 EN VOL';
     document.getElementById('countdown').textContent = '';
     if (countdownInterval) clearInterval(countdownInterval);
+    if (bettingAnimFrame) { cancelAnimationFrame(bettingAnimFrame); bettingAnimFrame = null; }
+    document.getElementById('main-btn').classList.remove('btn-blink');
+    document.getElementById('main-btn2').classList.remove('btn-blink');
     startEngine(1.0);
     updateBtn();
   });
@@ -1826,6 +1916,7 @@
     document.getElementById('bet-info').textContent = '🎯 ' + currentBet + (data.amount2 ? ' + ' + data.amount2 : '') + '$';
     showMsg('✅ Mise placée !', 'var(--green)');
     playBetSound();
+    document.getElementById('main-btn').classList.remove('btn-blink');
     updateBtn();
   });
 
