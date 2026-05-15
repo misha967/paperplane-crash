@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>✈️ Paperplane Crash</title>
+  <title>🚀 Paperplane Crash</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
@@ -603,7 +603,7 @@
 
 <!-- ══ AUTH ══ -->
 <div id="auth-screen">
-  <div class="auth-logo">✈️ PAPERPLANE</div>
+  <div class="auth-logo">🚀 PAPERPLANE</div>
   <div class="auth-sub">CRASH GAME</div>
   <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off" />
   <input type="password" id="input-password" placeholder="Mot de passe" />
@@ -616,7 +616,7 @@
 <div id="game-screen">
 
   <div class="top-bar">
-    <div class="logo">✈️ PAPERPLANE</div>
+    <div class="logo">🚀 PAPERPLANE</div>
     <div class="top-stats">
       <span id="connected-count">👥 0</span>
       <span id="balance">💰 1000 $</span>
@@ -976,36 +976,78 @@
     }
   }
 
-  let engineOsc = null, engineGain = null;
+  let engineOsc = null, engineGain = null, engineOsc2 = null;
+
+  function getChordRoot(time) {
+    // Same chord progression as music: Fmaj7 Dm7 Am7 C7, each CHORD_DUR seconds
+    const loopDur = chords.length * CHORD_DUR;
+    const t = time % loopDur;
+    const ci = Math.floor(t / CHORD_DUR);
+    return bassNotes[ci]; // F2 D2 A1 C2
+  }
 
   function startEngine(mult) {
     if (!soundEnabled) return;
     try {
       const ctx = getAudioCtx();
-      if (engineOsc) { engineOsc.stop(); engineOsc = null; }
+      if (engineOsc) { try { engineOsc.stop(); } catch(e){} engineOsc = null; }
+      if (engineOsc2) { try { engineOsc2.stop(); } catch(e){} engineOsc2 = null; }
+
+      const root = getChordRoot(ctx.currentTime);
+
+      // Sub-bass drone on chord root
       engineOsc = ctx.createOscillator();
       engineGain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
       engineOsc.type = 'sawtooth';
-      engineOsc.frequency.value = 80 + (mult - 1) * 12;
-      engineGain.gain.value = 0.03;
-      engineOsc.connect(engineGain);
+      engineOsc.frequency.value = root;
+      engineGain.gain.value = 0.06;
+      engineOsc.connect(filter);
+      filter.connect(engineGain);
       engineGain.connect(ctx.destination);
       engineOsc.start();
+
+      // Octave above for body
+      engineOsc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      engineOsc2.type = 'triangle';
+      engineOsc2.frequency.value = root * 2;
+      gain2.gain.value = 0.03;
+      engineOsc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      engineOsc2.start();
+
+      musicNodes.push(filter);
     } catch(e) {}
   }
 
   function updateEngine(mult) {
-    if (!engineOsc) return;
+    if (!engineOsc || !engineOsc2) return;
     try {
-      engineOsc.frequency.value = 80 + (mult - 1) * 12;
+      const ctx = getAudioCtx();
+      const root = getChordRoot(ctx.currentTime);
+      // Glide to new root over 0.1s
+      engineOsc.frequency.setTargetAtTime(root, ctx.currentTime, 0.1);
+      engineOsc2.frequency.setTargetAtTime(root * 2, ctx.currentTime, 0.1);
+      // Slight pitch rise with multiplier (subtle growl)
+      const detune = Math.min((mult - 1) * 8, 60);
+      engineOsc.detune.setTargetAtTime(detune, ctx.currentTime, 0.3);
+      engineOsc2.detune.setTargetAtTime(detune, ctx.currentTime, 0.3);
     } catch(e) {}
   }
 
   function stopEngine() {
     if (engineOsc) {
       try {
-        engineGain.gain.linearRampToValueAtTime(0, getAudioCtx().currentTime + 0.3);
-        setTimeout(() => { if (engineOsc) { try { engineOsc.stop(); } catch(e){} engineOsc = null; } }, 400);
+        engineGain.gain.linearRampToValueAtTime(0, getAudioCtx().currentTime + 0.4);
+        const o = engineOsc, o2 = engineOsc2;
+        setTimeout(() => {
+          try { o.stop(); } catch(e){}
+          try { if (o2) o2.stop(); } catch(e){}
+        }, 500);
+        engineOsc = null; engineOsc2 = null;
       } catch(e) {}
     }
   }
@@ -1334,7 +1376,7 @@
     // Draw plane emoji — no shadow to prevent flicker
     ctx2d.shadowBlur = 0;
     ctx2d.font = `${size}px serif`;
-    ctx2d.fillText('✈️', -size / 2, size / 3);
+    ctx2d.fillText('🚀', -size / 2, size / 3);
 
     ctx2d.restore();
   }
@@ -1349,7 +1391,7 @@
     drawMultiplierOnCanvas();
     ctx2d.shadowBlur = 0;
     ctx2d.font = '24px serif';
-    ctx2d.fillText('✈️', 20, h - 20);
+    ctx2d.fillText('🚀', 20, h - 20);
   }
 
   let animFrame = null;
