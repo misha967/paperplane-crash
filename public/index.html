@@ -638,7 +638,7 @@
         <canvas id="flight-canvas"></canvas>
         <div id="status-text">⏳ MISE EN ATTENTE</div>
         <div id="countdown"></div>
-        <div id="multiplier">1.00x</div>
+        <div id="multiplier" style="display:none;">1.00x</div>
       </div>
 
       <!-- CONTROLS -->
@@ -957,8 +957,10 @@
 
   function drawParticles() {
     particles.forEach(p => {
+      const radius = p.r * p.life;
+      if (radius <= 0) return;
       ctx2d.beginPath();
-      ctx2d.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx2d.arc(p.x, p.y, radius, 0, Math.PI * 2);
       ctx2d.fillStyle = `hsla(${p.hue}, 100%, 60%, ${p.life * 0.8})`;
       ctx2d.fill();
     });
@@ -1003,8 +1005,10 @@
       p.vy += 0.15;
       p.vx *= 0.97;
       p.life -= p.decay;
+      const radius = p.r * p.life;
+      if (radius <= 0) return;
       ctx2d.beginPath();
-      ctx2d.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx2d.arc(p.x, p.y, radius, 0, Math.PI * 2);
       ctx2d.fillStyle = `hsla(${p.hue}, 100%, 60%, ${p.life})`;
       ctx2d.fill();
     });
@@ -1103,18 +1107,53 @@
       ctx2d.stroke();
     }
 
-    // Particles trail (drawn BEFORE plane)
+    // Particles trail (drawn BEFORE multiplier and plane)
     if (gamePhase === 'flying') {
       addParticles(px, py, mult);
     }
     updateParticles();
     drawParticles();
 
-    // Explosion (drawn BEFORE plane)
+    // Explosion (drawn BEFORE multiplier and plane)
     drawExplosion();
+
+    // Multiplier text on canvas — below plane
+    drawMultiplierOnCanvas();
 
     // Plane LAST — always on top
     drawPlane(px, py, progress);
+  }
+
+  function drawMultiplierOnCanvas() {
+    const w = canvas.width, h = canvas.height;
+    const multEl = document.getElementById('multiplier');
+    const text = multEl.textContent;
+    const colorAttr = multEl.style.color || '';
+
+    let fillColor = '#00f0a0'; // default green
+    if (colorAttr.includes('red') || colorAttr === '#ff3a5c') fillColor = '#ff3a5c';
+    else if (colorAttr.includes('green') || colorAttr === '#00f0a0') fillColor = '#00f0a0';
+
+    const fontSize = Math.max(28, Math.min(60, w * 0.09));
+    ctx2d.save();
+    ctx2d.font = `700 ${fontSize}px 'Space Mono', monospace`;
+    ctx2d.textAlign = 'center';
+    ctx2d.textBaseline = 'middle';
+    // Soft glow
+    ctx2d.globalAlpha = 0.15;
+    ctx2d.fillStyle = fillColor;
+    for (let d = 8; d >= 2; d -= 2) {
+      ctx2d.fillText(text, w / 2 + d, h / 2);
+      ctx2d.fillText(text, w / 2 - d, h / 2);
+      ctx2d.fillText(text, w / 2, h / 2 + d);
+      ctx2d.fillText(text, w / 2, h / 2 - d);
+    }
+    ctx2d.globalAlpha = 1;
+    ctx2d.fillStyle = fillColor;
+    ctx2d.fillText(text, w / 2, h / 2);
+    ctx2d.textAlign = 'left';
+    ctx2d.textBaseline = 'alphabetic';
+    ctx2d.restore();
   }
 
   function drawPlane(px, py, progress) {
@@ -1155,6 +1194,7 @@
     ctx2d.clearRect(0, 0, w, h);
     drawGrid();
     drawStars(false);
+    drawMultiplierOnCanvas();
     ctx2d.shadowBlur = 0;
     ctx2d.font = '24px serif';
     ctx2d.fillText('✈️', 20, h - 20);
