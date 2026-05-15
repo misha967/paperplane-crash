@@ -146,14 +146,21 @@
 
     /* ══ MAIN LAYOUT ══ */
     .main-layout { display: flex; flex: 1; overflow: hidden; }
-    .left-col { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .left-col { display: flex; flex-direction: column; flex: 1; overflow-y: auto; }
 
-    /* FLIGHT BOX */
+    /* FLIGHT BOX — fixed height, never changes */
     .flight-box {
       position: relative;
-      flex: 1;
+      height: 240px;
+      flex-shrink: 0;
       background: var(--bg);
       overflow: hidden;
+    }
+    @media (min-height: 700px) {
+      .flight-box { height: 280px; }
+    }
+    @media (min-height: 800px) {
+      .flight-box { height: 320px; }
     }
     #flight-canvas { width: 100%; height: 100%; display: block; }
 
@@ -246,38 +253,12 @@
       gap: 8px;
     }
 
-    /* Bet inputs collapse smoothly during flight — no height jump */
-    .bet-inputs-wrap {
-      overflow: hidden;
-      max-height: 120px;
-      transition: max-height 0.25s ease, opacity 0.2s ease;
-      opacity: 1;
-    }
-    .bet-inputs-wrap.hidden {
-      max-height: 0;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .bet-tabs-wrap {
-      overflow: hidden;
-      max-height: 40px;
-      transition: max-height 0.25s ease, opacity 0.2s ease;
-      opacity: 1;
-    }
-    .bet-tabs-wrap.hidden {
-      max-height: 0;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .auto-row-wrap {
-      overflow: hidden;
-      max-height: 40px;
-      transition: max-height 0.2s ease, opacity 0.2s ease;
-      opacity: 1;
-    }
-    .auto-row-wrap.hidden {
-      max-height: 0;
-      opacity: 0;
+    /* Inputs always visible — just greyed out during flight */
+    .bet-inputs-wrap, .bet-tabs-wrap, .auto-row-wrap { overflow: visible; }
+    .controls-locked .bet-inputs-wrap,
+    .controls-locked .bet-tabs-wrap,
+    .controls-locked .auto-row-wrap {
+      opacity: 0.35;
       pointer-events: none;
     }
 
@@ -2078,11 +2059,8 @@
     document.getElementById('bet-info').textContent = '';
     resetCanvas();
     updateBtn();
-    // Restore inputs
-    document.getElementById('bet-tabs-wrap').classList.remove('hidden');
-    document.getElementById('bet-inputs-wrap1').classList.remove('hidden');
-    document.getElementById('bet-inputs-wrap2').classList.remove('hidden');
-    document.getElementById('auto-row-wrap').classList.remove('hidden');
+    // Unlock inputs
+    document.querySelector('.controls-panel').classList.remove('controls-locked');
 
     // Canvas countdown
     const dur = data.duration || 5000;
@@ -2118,11 +2096,8 @@
     if (bettingAnimFrame) { cancelAnimationFrame(bettingAnimFrame); bettingAnimFrame = null; }
     document.getElementById('main-btn').classList.remove('btn-blink');
     document.getElementById('main-btn2').classList.remove('btn-blink');
-    // Collapse inputs smoothly
-    document.getElementById('bet-tabs-wrap').classList.add('hidden');
-    document.getElementById('bet-inputs-wrap1').classList.add('hidden');
-    document.getElementById('bet-inputs-wrap2').classList.add('hidden');
-    document.getElementById('auto-row-wrap').classList.add('hidden');
+    // Lock inputs during flight
+    document.querySelector('.controls-panel').classList.add('controls-locked');
     startEngine(1.0);
     updateBtn();
   });
