@@ -65,4 +65,4 @@ function startFlying() {
   }, 100);
 }
 
-io.on('connection', (socket)
+io.on('connection', (socket) => {
