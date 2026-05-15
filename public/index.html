@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Paperplane Crash</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    h1 { font-size: 2rem; margin-bottom: 20px; color: #e94560; }
+    #game-area { background: #16213e; padding: 40px; border-radius: 15px; text-align: center; width: 400px; }
+    #multiplier { font-size: 4rem; font-weight: bold; color: #00ff88; margin: 20px 0; }
+    #status { font-size: 1rem; color: #aaa; margin-bottom: 20px; }
+    input { padding: 10px; border-radius: 8px; border: none; margin: 5px; width: 180px; }
+    button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; margin: 5px; font-weight: bold; }
+    #btn-bet { background: #e94560; color: white; }
+    #btn-cashout { background: #00ff88; color: black; }
+    #btn-login { background: #0f3460; color: white; }
+    #btn-register { background: #533483; color: white; }
+    #balance { font-size: 1.2rem; margin-top: 15px; color: #ffd700; }
+    #message { margin-top: 10px; color: #00ff88; min-height: 20px; }
+    #auth-area { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>✈️ Paperplane Crash</h1>
+
+  <div id="game-area">
+    <div id="auth-area">
+      <input type="text" id="username" placeholder="Nom d'utilisateur" />
+      <input type="password" id="password" placeholder="Mot de passe" />
+      <br>
+      <button id="btn-register" onclick="register()">S'inscrire</button>
+      <button id="btn-login" onclick="login()">Se connecter</button>
+    </div>
+
+    <div id="play-area" style="display:none">
+      <div id="status">En attente...</div>
+      <div id="multiplier">1.00x</div>
+      <input type="number" id="bet-amount" placeholder="Mise" min="1" value="10" />
+      <br>
+      <button id="btn-bet" onclick="placeBet()">Miser</button>
+      <button id="btn-cashout" onclick="cashout()">Cashout 💰</button>
+      <div id="balance">Solde : 1000</div>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let token = null;
+    let balance = 0;
+
+    function register() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      }).then(r => r.json()).then(data => {
+        if (data.error) alert(data.error);
+        else alert('Inscription réussie ! Connecte-toi.');
+      });
+    }
+
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      }).then(r => r.json()).then(data => {
+        if (data.error) alert(data.error);
+        else {
+          token = data.token;
+          balance = data.balance;
+          document.getElementById('auth-area').style.display = 'none';
+          document.getElementById('play-area').style.display = 'block';
+          document.getElementById('balance').textContent = 'Solde : ' + balance;
+        }
+      });
+    }
+
+    function placeBet() {
+      const amount = parseFloat(document.getElementById('bet-amount').value);
+      socket.emit('place_bet', { token, amount });
+    }
+
+    function cashout() {
+      socket.emit('cashout', { token });
+    }
+
+    socket.on('game_start', () => {
+      document.getElementById('status').textContent = '🚀 En cours !';
+      document.getElementById('multiplier').style.color = '#00ff88';
+      document.getElementById('message').textContent = '';
+    });
+
+    socket.on('multiplier_update', (data) => {
+      document.getElementById('multiplier').textContent = data.multiplier + 'x';
+    });
+
+    socket.on('game_crash', (data) => {
+      document.getElementById('status').textContent = '💥 Crash à ' + data.crashAt + 'x !';
+      document.getElementById('multiplier').style.color = '#e94560';
+    });
+
+    socket.on('cashout_success', (data) => {
+      balance = data.balance;
+      document.getElementById('balance').textContent = 'Solde : ' + balance;
+      document.getElementById('message').textContent = '✅ Cashout ! +' + data.profit;
+    });
+  </script>
+</body>
+</html>
