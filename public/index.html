@@ -811,17 +811,169 @@
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let audioCtx = null;
 
+  // ── CHILL MUSIC ──
+  let musicPlaying = false;
+  let musicNodes = [];  // all nodes to disconnect on stop
+  let musicScheduler = null;
+
+  // Lo-fi chord progression: Fmaj7 → Dm7 → Am7 → C7  (loop)
+  // Notes in Hz (equal temperament, A4=440)
+  const NOTE = n => 440 * Math.pow(2, n / 12);
+  const chords = [
+    // Fmaj7: F3 A3 C4 E4
+    [NOTE(-17), NOTE(-13), NOTE(-10), NOTE(-6)],
+    // Dm7: D3 F3 A3 C4
+    [NOTE(-19), NOTE(-17), NOTE(-13), NOTE(-10)],
+    // Am7: A2 C3 E3 G3
+    [NOTE(-24), NOTE(-22), NOTE(-18), NOTE(-15)],
+    // C7:  C3 E3 G3 Bb3
+    [NOTE(-22), NOTE(-18), NOTE(-15), NOTE(-13)],
+  ];
+  const bassNotes = [NOTE(-29), NOTE(-31), NOTE(-36), NOTE(-34)]; // F2 D2 A1 C2
+  const CHORD_DUR = 2.0; // seconds per chord
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    return audioCtx;
+  }
+
+  function makePad(ctx, freq, startTime, duration, vol) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    // Slight detune for warmth
+    osc.detune.value = (Math.random() - 0.5) * 8;
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 1200;
+    filter.Q.value = 0.8;
+
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(vol, startTime + 0.3);
+    gain.gain.setValueAtTime(vol, startTime + duration - 0.4);
+    gain.gain.linearRampToValueAtTime(0, startTime + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.1);
+    musicNodes.push(osc, gain, filter);
+  }
+
+  function makeBass(ctx, freq, startTime, duration) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 300;
+
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.12, startTime + 0.05);
+    gain.gain.setValueAtTime(0.12, startTime + duration - 0.3);
+    gain.gain.linearRampToValueAtTime(0, startTime + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.1);
+    musicNodes.push(osc, gain, filter);
+  }
+
+  function makeHihat(ctx, startTime, vol) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+    }
+    const src = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    src.buffer = buf;
+    filter.type = 'highpass';
+    filter.frequency.value = 6000;
+    gain.gain.value = vol;
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(startTime);
+    musicNodes.push(src, gain, filter);
+  }
+
+  function makeKick(ctx, startTime) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120, startTime);
+    osc.frequency.exponentialRampToValueAtTime(40, startTime + 0.15);
+    gain.gain.setValueAtTime(0.3, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + 0.3);
+    musicNodes.push(osc, gain);
+  }
+
+  function scheduleMusic() {
+    if (!musicPlaying) return;
+    const ctx = getAudioCtx();
+    const loopDur = chords.length * CHORD_DUR; // 8s loop
+    let t = ctx.currentTime + 0.05;
+
+    // Chords + bass
+    chords.forEach((chord, ci) => {
+      const cs = t + ci * CHORD_DUR;
+      chord.forEach(freq => makePad(ctx, freq, cs, CHORD_DUR + 0.1, 0.045));
+      makeBass(ctx, bassNotes[ci], cs, CHORD_DUR);
+    });
+
+    // Drums: kick on 1 & 3, hihat every 8th note
+    const beat = CHORD_DUR / 2; // half chord = 1 beat
+    const totalBeats = chords.length * 2;
+    for (let b = 0; b < totalBeats; b++) {
+      const bt = t + b * beat;
+      if (b % 2 === 0) makeKick(ctx, bt);                        // kick on 1,3,5,7
+      makeHihat(ctx, bt, 0.04);                                   // hihat every beat
+      makeHihat(ctx, bt + beat * 0.5, 0.025);                    // offbeat hihat
+    }
+
+    // Re-schedule slightly before loop ends
+    musicScheduler = setTimeout(scheduleMusic, (loopDur - 0.3) * 1000);
+  }
+
+  function startMusic() {
+    if (musicPlaying || !soundEnabled) return;
+    musicPlaying = true;
+    scheduleMusic();
+  }
+
+  function stopMusic() {
+    musicPlaying = false;
+    if (musicScheduler) { clearTimeout(musicScheduler); musicScheduler = null; }
+    // Nodes auto-stop at their scheduled time; just clear refs
+    musicNodes = [];
+  }
+
   function toggleSound() {
     soundEnabled = !soundEnabled;
     const btn = document.getElementById('sound-btn');
     btn.textContent = soundEnabled ? '🔊' : '🔇';
     btn.style.opacity = soundEnabled ? '1' : '0.5';
-    if (!soundEnabled && engineOsc) stopEngine();
-  }
-
-  function getAudioCtx() {
-    if (!audioCtx) audioCtx = new AudioCtx();
-    return audioCtx;
+    if (!soundEnabled) {
+      stopEngine();
+      stopMusic();
+    } else {
+      startMusic();
+    }
   }
 
   let engineOsc = null, engineGain = null;
@@ -1539,6 +1691,7 @@
     updateBtn();
     updateStats();
     renderPersonalHistory(personalHistory);
+    startMusic();
   }
 
   // ── SOCKET ──
