@@ -18,13 +18,16 @@ const gameState = {
   phase: 'waiting',
   bets: {}
 };
+let gameInterval = null;
 
+// ─── AUTH ───────────────────────────────────────────────
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
   if (users[username]) return res.json({ error: 'Utilisateur existe déjà' });
   const hash = await bcrypt.hash(password, 10);
   users[username] = { password: hash, balance: 1000 };
-  res.json({ success: true });
+  const token = jwt.sign({ username }, SECRET);
+  res.json({ success: true, token, balance: 1000 });
 });
 
 app.post('/login', async (req, res) => {
@@ -37,6 +40,7 @@ app.post('/login', async (req, res) => {
   res.json({ token, balance: user.balance });
 });
 
+// ─── GAME LOOP ───────────────────────────────────────────
 function startBetting() {
   gameState.phase = 'betting';
   gameState.bets = {};
@@ -47,23 +51,25 @@ function startBetting() {
 
 function startFlying() {
   gameState.phase = 'flying';
-  const crashPoint = parseFloat((1 + Math.random() * 9).toFixed(2));
+  const crashPoint = parseFloat((1.2 + Math.random() * 8.8).toFixed(2));
   io.emit('game_start');
 
-  const interval = setInterval(() => {
+  if (gameInterval) clearInterval(gameInterval);
+
+  gameInterval = setInterval(() => {
     gameState.multiplier = parseFloat((gameState.multiplier + 0.05).toFixed(2));
     io.emit('multiplier_update', { multiplier: gameState.multiplier });
 
     if (gameState.multiplier >= crashPoint) {
-      clearInterval(interval);
+      clearInterval(gameInterval);
+      gameInterval = null;
       gameState.phase = 'crashed';
 
-      // Pertes pour ceux qui n'ont pas cashout
+      // Notifier ceux qui n'ont pas cashout
       Object.entries(gameState.bets).forEach(([username, bet]) => {
         if (!bet.cashedOut) {
-          io.to(bet.socketId).emit('game_crash', {
-            crashAt: gameState.multiplier,
-            message: '💥 Perdu !'
+          io.to(bet.socketId).emit('lost', {
+            crashAt: gameState.multiplier
           });
         }
       });
@@ -71,18 +77,22 @@ function startFlying() {
       io.emit('game_crash', { crashAt: gameState.multiplier });
       setTimeout(startBetting, 4000);
     }
-  }, 200);
+  }, 100);
 }
 
+// ─── SOCKET ──────────────────────────────────────────────
 io.on('connection', (socket) => {
-  // Envoie l'état actuel au nouveau connecté
+  // Envoie l'état au nouveau connecté
   if (gameState.phase === 'betting') {
-    socket.emit('betting_phase', { duration: 3000 });
+    socket.emit('betting_phase', { duration: 2000 });
   } else if (gameState.phase === 'flying') {
     socket.emit('game_start');
     socket.emit('multiplier_update', { multiplier: gameState.multiplier });
+  } else if (gameState.phase === 'crashed') {
+    socket.emit('game_crash', { crashAt: gameState.multiplier });
   }
 
+  // ── MISE ──
   socket.on('place_bet', (data) => {
     if (gameState.phase !== 'betting') {
       return socket.emit('bet_error', { message: 'Phase de mise terminée' });
@@ -91,39 +101,56 @@ io.on('connection', (socket) => {
       const decoded = jwt.verify(data.token, SECRET);
       const user = users[decoded.username];
       if (!user) return socket.emit('bet_error', { message: 'Utilisateur introuvable' });
+      if (data.amount <= 0) return socket.emit('bet_error', { message: 'Mise invalide' });
       if (user.balance < data.amount) return socket.emit('bet_error', { message: 'Solde insuffisant' });
-      user.balance -= data.amount;
+
+      user.balance = parseFloat((user.balance - data.amount).toFixed(2));
       gameState.bets[decoded.username] = {
         amount: data.amount,
         socketId: socket.id,
         cashedOut: false
       };
-      socket.emit('balance_update', { balance: user.balance });
+
+      socket.emit('bet_placed', { balance: user.balance, amount: data.amount });
     } catch (e) {
       socket.emit('bet_error', { message: 'Token invalide' });
     }
   });
 
+  // ── CASHOUT ──
   socket.on('cashout', (data) => {
-    if (gameState.phase !== 'flying') return;
+    if (gameState.phase !== 'flying') {
+      return socket.emit('cashout_error', { message: 'Pas en vol' });
+    }
     try {
       const decoded = jwt.verify(data.token, SECRET);
       const bet = gameState.bets[decoded.username];
-      if (!bet || bet.cashedOut) return;
+      if (!bet) return socket.emit('cashout_error', { message: 'Aucune mise trouvée' });
+      if (bet.cashedOut) return socket.emit('cashout_error', { message: 'Déjà cashout' });
+
       bet.cashedOut = true;
       const winnings = parseFloat((bet.amount * gameState.multiplier).toFixed(2));
       const profit = parseFloat((winnings - bet.amount).toFixed(2));
-      users[decoded.username].balance += winnings;
+      users[decoded.username].balance = parseFloat(
+        (users[decoded.username].balance + winnings).toFixed(2)
+      );
+
       socket.emit('cashout_success', {
         multiplier: gameState.multiplier,
+        winnings,
         profit,
         balance: users[decoded.username].balance
       });
-    } catch (e) {}
+    } catch (e) {
+      socket.emit('cashout_error', { message: 'Token invalide' });
+    }
   });
+
+  socket.on('disconnect', () => {});
 });
 
-server.listen(process.env.PORT || 3000, () => {
-  console.log('Serveur démarré');
+// ─── START ───────────────────────────────────────────────
+server.listen(3000, () => {
+  console.log('✈️  Paperplane Crash sur http://localhost:3000');
   startBetting();
 });
