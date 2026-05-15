@@ -309,7 +309,7 @@
       })
       .then(r => r.json())
       .then(data => {
-        if (data.token) {
+        if (data.success) {
           token = data.token;
           balance = data.balance;
           showGame();
@@ -458,7 +458,7 @@
 
     socket.on('game_crash', (data) => {
       gamePhase = 'crashed';
-      document.getElementById('multiplier').textContent = '💥 ' + data.multiplier + 'x';
+      document.getElementById('multiplier').textContent = '💥 ' + data.crashAt + 'x';
       document.getElementById('multiplier').style.color = '#e94560';
       document.getElementById('status-text').textContent = '💥 Crash !';
       document.getElementById('plane').textContent = '💥';
