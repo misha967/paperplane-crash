@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
+<!-- saved from url=(0042)file:///C:/Users/MyPC/Downloads/index.html -->
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>✈️ Paperplane Crash</title>
   <style>
@@ -19,7 +19,7 @@
       --yellow: #ffd60a;
       --blue: #4488ff;
       --text: #ffffff;
-      --muted: #6666aa;
+      --muted: #9999cc;
       --font-main: 'Rajdhani', sans-serif;
       --font-mono: 'Space Mono', monospace;
     }
@@ -605,8 +605,8 @@
 <div id="auth-screen">
   <div class="auth-logo">✈️ PAPERPLANE</div>
   <div class="auth-sub">CRASH GAME</div>
-  <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off" />
-  <input type="password" id="input-password" placeholder="Mot de passe" />
+  <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off">
+  <input type="password" id="input-password" placeholder="Mot de passe">
   <button class="auth-btn" id="btn-login" onclick="doLogin()">CONNEXION</button>
   <button class="auth-btn" id="btn-register" onclick="doRegister()">CRÉER UN COMPTE</button>
   <span id="auth-error"></span>
@@ -644,6 +644,20 @@
       <!-- CONTROLS -->
       <div class="controls-panel">
 
+        <!-- Emoji + Son -->
+        <div class="status-row">
+          <div class="emoji-row">
+            <button class="emoji-btn" onclick="sendEmoji(&#39;💩&#39;)">💩</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;🖕&#39;)">🖕</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;🍆&#39;)">🍆</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;😂&#39;)">😂</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;🔥&#39;)">🔥</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;💸&#39;)">💸</button>
+            <button class="emoji-btn" onclick="sendEmoji(&#39;😱&#39;)">😱</button>
+          </div>
+          <button id="sound-btn" onclick="toggleSound()" title="Son on/off" style="font-size:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:5px 10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;color:#fff;">🔊</button>
+        </div>
+
         <!-- Bet tabs -->
         <div class="bet-tabs">
           <button class="bet-tab active" id="tab-bet1" onclick="showBetPanel(1)">🎯 MISE 1</button>
@@ -655,7 +669,7 @@
           <div class="bet-area">
             <div class="bet-input-wrap">
               <div class="amount-display">
-                <input type="number" id="bet-input" placeholder="0" min="1" />
+                <input type="number" id="bet-input" placeholder="50" value="50" min="1">
                 <span class="currency">$</span>
               </div>
               <div class="quick-row">
@@ -679,7 +693,7 @@
           <div class="bet-area">
             <div class="bet-input-wrap">
               <div class="amount-display bet2">
-                <input type="number" id="bet-input2" placeholder="0" min="1" />
+                <input type="number" id="bet-input2" placeholder="50" value="50" min="1">
                 <span class="currency" style="color:var(--blue)">$</span>
               </div>
               <div class="quick-row">
@@ -702,7 +716,7 @@
         <div class="auto-row">
           <div class="auto-pill">
             <span class="auto-label">AUTO x</span>
-            <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1" />
+            <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1">
             <button class="auto-toggle" id="auto-toggle" onclick="toggleAuto()"></button>
           </div>
           <div class="auto-pill autobet-pill">
@@ -711,21 +725,10 @@
           </div>
         </div>
 
-        <!-- Status + Emoji -->
-        <div class="status-row">
-          <div class="emoji-row">
-            <button class="emoji-btn" onclick="sendEmoji('💩')">💩</button>
-            <button class="emoji-btn" onclick="sendEmoji('🖕')">🖕</button>
-            <button class="emoji-btn" onclick="sendEmoji('🍆')">🍆</button>
-            <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
-            <button class="emoji-btn" onclick="sendEmoji('🔥')">🔥</button>
-            <button class="emoji-btn" onclick="sendEmoji('💸')">💸</button>
-            <button class="emoji-btn" onclick="sendEmoji('😱')">😱</button>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
-            <div id="bet-info"></div>
-            <div id="message"></div>
-          </div>
+        <!-- Status info -->
+        <div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;">
+          <div id="bet-info"></div>
+          <div id="message"></div>
         </div>
 
       </div>
@@ -733,10 +736,10 @@
       <!-- MOBILE TABS -->
       <div class="mobile-tabs-wrap">
         <div class="mobile-tabs">
-          <button class="mobile-tab-btn active" onclick="switchMobileTab('bets')">🎯 Mises</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab('leaderboard')">🏆 Top</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab('players')">👥 Joueurs</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab('stats')">📊 Stats</button>
+          <button class="mobile-tab-btn active" onclick="switchMobileTab(&#39;bets&#39;)">🎯 Mises</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;leaderboard&#39;)">🏆 Top</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;players&#39;)">👥 Joueurs</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;stats&#39;)">📊 Stats</button>
         </div>
         <div class="mobile-tab-content active" id="mobile-tab-bets"><span class="empty-msg">Aucune mise</span></div>
         <div class="mobile-tab-content" id="mobile-tab-leaderboard"></div>
@@ -749,10 +752,10 @@
     <!-- DESKTOP SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-tabs">
-        <button class="tab-btn active" onclick="switchTab('bets')">Mises</button>
-        <button class="tab-btn" onclick="switchTab('leaderboard')">Top</button>
-        <button class="tab-btn" onclick="switchTab('players')">Joueurs</button>
-        <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+        <button class="tab-btn active" onclick="switchTab(&#39;bets&#39;)">Mises</button>
+        <button class="tab-btn" onclick="switchTab(&#39;leaderboard&#39;)">Top</button>
+        <button class="tab-btn" onclick="switchTab(&#39;players&#39;)">Joueurs</button>
+        <button class="tab-btn" onclick="switchTab(&#39;stats&#39;)">Stats</button>
       </div>
       <div class="tab-content active" id="tab-bets"><span class="empty-msg">Aucune mise</span></div>
       <div class="tab-content" id="tab-leaderboard"></div>
@@ -786,7 +789,7 @@
   </div>
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
+<script src="file:///C:/socket.io/socket.io.js"></script>
 <script>
   // ── STATE ──
   let token = null, username = null, balance = 0, sessionStart = 0;
@@ -804,8 +807,17 @@
   const socket = io();
 
   // ── AUDIO ──
+  let soundEnabled = true;
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let audioCtx = null;
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('sound-btn');
+    btn.textContent = soundEnabled ? '🔊' : '🔇';
+    btn.style.opacity = soundEnabled ? '1' : '0.5';
+    if (!soundEnabled && engineOsc) stopEngine();
+  }
 
   function getAudioCtx() {
     if (!audioCtx) audioCtx = new AudioCtx();
@@ -815,6 +827,7 @@
   let engineOsc = null, engineGain = null;
 
   function startEngine(mult) {
+    if (!soundEnabled) return;
     try {
       const ctx = getAudioCtx();
       if (engineOsc) { engineOsc.stop(); engineOsc = null; }
@@ -846,6 +859,7 @@
   }
 
   function playCrashSound() {
+    if (!soundEnabled) return;
     try {
       stopEngine();
       const ctx = getAudioCtx();
@@ -863,6 +877,7 @@
   }
 
   function playCashoutSound() {
+    if (!soundEnabled) return;
     try {
       const ctx = getAudioCtx();
       const osc = ctx.createOscillator();
@@ -878,6 +893,7 @@
   }
 
   function playBetSound() {
+    if (!soundEnabled) return;
     try {
       const ctx = getAudioCtx();
       const osc = ctx.createOscillator();
@@ -1087,38 +1103,45 @@
       ctx2d.stroke();
     }
 
-    // Particles
+    // Particles trail (drawn BEFORE plane)
     if (gamePhase === 'flying') {
       addParticles(px, py, mult);
     }
     updateParticles();
     drawParticles();
 
-    // Plane
-    drawPlane(px, py, progress);
-
-    // Explosion
+    // Explosion (drawn BEFORE plane)
     drawExplosion();
+
+    // Plane LAST — always on top
+    drawPlane(px, py, progress);
   }
 
   function drawPlane(px, py, progress) {
     ctx2d.save();
     ctx2d.translate(px, py);
 
-    // Angle based on curve tangent
+    // Angle based on curve tangent — smooth over last few points
     let angle = 0;
     if (flightPoints.length >= 2) {
       const last = flightPoints[flightPoints.length - 1];
-      const prev = flightPoints[Math.max(0, flightPoints.length - 4)];
+      const prev = flightPoints[Math.max(0, flightPoints.length - 6)];
       angle = Math.atan2(last.y - prev.y, last.x - prev.x);
     }
     ctx2d.rotate(angle);
 
-    // Plane glow
-    ctx2d.shadowColor = 'rgba(0,240,160,0.6)';
-    ctx2d.shadowBlur = 15;
-
+    // Stable glow: fixed radial gradient, no randomness, no shadowBlur
     const size = Math.max(20, Math.min(28, canvas.width / 22));
+    const glowR = ctx2d.createRadialGradient(0, 0, 0, 0, 0, size * 1.2);
+    glowR.addColorStop(0, 'rgba(0,240,160,0.25)');
+    glowR.addColorStop(1, 'rgba(0,240,160,0)');
+    ctx2d.fillStyle = glowR;
+    ctx2d.beginPath();
+    ctx2d.arc(0, 0, size * 1.2, 0, Math.PI * 2);
+    ctx2d.fill();
+
+    // Draw plane emoji — no shadow to prevent flicker
+    ctx2d.shadowBlur = 0;
     ctx2d.font = `${size}px serif`;
     ctx2d.fillText('✈️', -size / 2, size / 3);
 
@@ -1132,11 +1155,9 @@
     ctx2d.clearRect(0, 0, w, h);
     drawGrid();
     drawStars(false);
-    ctx2d.font = '24px serif';
-    ctx2d.shadowColor = 'rgba(0,240,160,0.4)';
-    ctx2d.shadowBlur = 10;
-    ctx2d.fillText('✈️', 20, h - 20);
     ctx2d.shadowBlur = 0;
+    ctx2d.font = '24px serif';
+    ctx2d.fillText('✈️', 20, h - 20);
   }
 
   let animFrame = null;
@@ -1621,5 +1642,6 @@
     socket.emit('send_emoji', { token, emoji });
   }
 </script>
-</body>
-</html>
+
+
+</body></html>
