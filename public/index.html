@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0042)file:///C:/Users/MyPC/Downloads/index.html -->
-<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>✈️ Paperplane Crash</title>
   <style>
@@ -605,8 +605,8 @@
 <div id="auth-screen">
   <div class="auth-logo">✈️ PAPERPLANE</div>
   <div class="auth-sub">CRASH GAME</div>
-  <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off">
-  <input type="password" id="input-password" placeholder="Mot de passe">
+  <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off" />
+  <input type="password" id="input-password" placeholder="Mot de passe" />
   <button class="auth-btn" id="btn-login" onclick="doLogin()">CONNEXION</button>
   <button class="auth-btn" id="btn-register" onclick="doRegister()">CRÉER UN COMPTE</button>
   <span id="auth-error"></span>
@@ -647,13 +647,13 @@
         <!-- Emoji + Son -->
         <div class="status-row">
           <div class="emoji-row">
-            <button class="emoji-btn" onclick="sendEmoji(&#39;💩&#39;)">💩</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;🖕&#39;)">🖕</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;🍆&#39;)">🍆</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;😂&#39;)">😂</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;🔥&#39;)">🔥</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;💸&#39;)">💸</button>
-            <button class="emoji-btn" onclick="sendEmoji(&#39;😱&#39;)">😱</button>
+            <button class="emoji-btn" onclick="sendEmoji('💩')">💩</button>
+            <button class="emoji-btn" onclick="sendEmoji('🖕')">🖕</button>
+            <button class="emoji-btn" onclick="sendEmoji('🍆')">🍆</button>
+            <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
+            <button class="emoji-btn" onclick="sendEmoji('🔥')">🔥</button>
+            <button class="emoji-btn" onclick="sendEmoji('💸')">💸</button>
+            <button class="emoji-btn" onclick="sendEmoji('😱')">😱</button>
           </div>
           <button id="sound-btn" onclick="toggleSound()" title="Son on/off" style="font-size:1.2rem;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:5px 10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;color:#fff;">🔊</button>
         </div>
@@ -669,7 +669,7 @@
           <div class="bet-area">
             <div class="bet-input-wrap">
               <div class="amount-display">
-                <input type="number" id="bet-input" placeholder="50" value="50" min="1">
+                <input type="number" id="bet-input" placeholder="50" value="50" min="1" />
                 <span class="currency">$</span>
               </div>
               <div class="quick-row">
@@ -693,7 +693,7 @@
           <div class="bet-area">
             <div class="bet-input-wrap">
               <div class="amount-display bet2">
-                <input type="number" id="bet-input2" placeholder="50" value="50" min="1">
+                <input type="number" id="bet-input2" placeholder="50" value="50" min="1" />
                 <span class="currency" style="color:var(--blue)">$</span>
               </div>
               <div class="quick-row">
@@ -716,7 +716,7 @@
         <div class="auto-row">
           <div class="auto-pill">
             <span class="auto-label">AUTO x</span>
-            <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1">
+            <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1" />
             <button class="auto-toggle" id="auto-toggle" onclick="toggleAuto()"></button>
           </div>
           <div class="auto-pill autobet-pill">
@@ -736,10 +736,10 @@
       <!-- MOBILE TABS -->
       <div class="mobile-tabs-wrap">
         <div class="mobile-tabs">
-          <button class="mobile-tab-btn active" onclick="switchMobileTab(&#39;bets&#39;)">🎯 Mises</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;leaderboard&#39;)">🏆 Top</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;players&#39;)">👥 Joueurs</button>
-          <button class="mobile-tab-btn" onclick="switchMobileTab(&#39;stats&#39;)">📊 Stats</button>
+          <button class="mobile-tab-btn active" onclick="switchMobileTab('bets')">🎯 Mises</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab('leaderboard')">🏆 Top</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab('players')">👥 Joueurs</button>
+          <button class="mobile-tab-btn" onclick="switchMobileTab('stats')">📊 Stats</button>
         </div>
         <div class="mobile-tab-content active" id="mobile-tab-bets"><span class="empty-msg">Aucune mise</span></div>
         <div class="mobile-tab-content" id="mobile-tab-leaderboard"></div>
@@ -752,10 +752,10 @@
     <!-- DESKTOP SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-tabs">
-        <button class="tab-btn active" onclick="switchTab(&#39;bets&#39;)">Mises</button>
-        <button class="tab-btn" onclick="switchTab(&#39;leaderboard&#39;)">Top</button>
-        <button class="tab-btn" onclick="switchTab(&#39;players&#39;)">Joueurs</button>
-        <button class="tab-btn" onclick="switchTab(&#39;stats&#39;)">Stats</button>
+        <button class="tab-btn active" onclick="switchTab('bets')">Mises</button>
+        <button class="tab-btn" onclick="switchTab('leaderboard')">Top</button>
+        <button class="tab-btn" onclick="switchTab('players')">Joueurs</button>
+        <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
       </div>
       <div class="tab-content active" id="tab-bets"><span class="empty-msg">Aucune mise</span></div>
       <div class="tab-content" id="tab-leaderboard"></div>
@@ -789,7 +789,7 @@
   </div>
 </div>
 
-<script src="file:///C:/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
   // ── STATE ──
   let token = null, username = null, balance = 0, sessionStart = 0;
@@ -1642,6 +1642,5 @@
     socket.emit('send_emoji', { token, emoji });
   }
 </script>
-
-
-</body></html>
+</body>
+</html>
