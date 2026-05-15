@@ -619,13 +619,13 @@
       }
       .mobile-tab-btn {
         flex: 1;
-        padding: 7px 2px;
+        padding: 6px 2px;
         background: none;
         border: none;
         color: var(--muted);
         cursor: pointer;
         font-family: var(--font-main);
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         font-weight: 600;
         border-top: 2px solid transparent;
         transition: all 0.15s;
@@ -636,16 +636,27 @@
       .mobile-tab-content {
         display: none;
         background: var(--bg);
-        max-height: 120px;
+        max-height: 90px;
         overflow-y: auto;
-        padding: 5px 8px;
-        gap: 4px;
+        padding: 4px 8px;
+        gap: 3px;
         flex-direction: column;
         border-top: 1px solid var(--border);
       }
       .mobile-tab-content.active { display: flex; }
-      .emoji-btn { font-size: 1.5rem; padding: 6px 11px; }
-      #main-btn, #main-btn2 { font-size: 0.95rem; padding: 11px; min-width: 90px; }
+
+      /* Tighter controls on mobile */
+      .controls-panel { padding: 7px 10px; gap: 5px; }
+      .emoji-btn { font-size: 1.3rem; padding: 4px 8px; }
+      #main-btn, #main-btn2 { font-size: 1.1rem; padding: 12px; }
+      #live-gain { font-size: 0.95rem; }
+      .amount-display input { font-size: 1rem; }
+      .q-btn, .hd-btn { padding: 4px 0; font-size: 0.68rem; }
+      .auto-pill { padding: 4px 8px; }
+      .auto-label { font-size: 0.68rem; }
+      .bet-tab { padding: 5px; font-size: 0.75rem; }
+      .history-bar { padding: 3px 10px; }
+      .top-bar { padding: 5px 10px; }
     }
     @media (min-width: 641px) {
       .mobile-tabs-wrap { display: none; }
@@ -1178,19 +1189,188 @@
   const canvas = document.getElementById('flight-canvas');
   const ctx2d = canvas.getContext('2d');
 
-  // Stars background
+  // ── SPACE BACKGROUND ──
   let stars = [];
-  function initStars() {
+  let planets = [];
+  let nebulaClouds = [];
+  let asteroids = [];
+
+  function initSpaceBackground() {
+    const w = canvas.width, h = canvas.height;
+
+    // Stars — 3 layers of depth
     stars = [];
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 160; i++) {
       stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 1.5 + 0.3,
-        speed: Math.random() * 0.4 + 0.1,
-        alpha: Math.random() * 0.5 + 0.2
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.4 + 0.2,
+        speed: Math.random() * 0.3 + 0.05,
+        alpha: Math.random() * 0.6 + 0.2,
+        twinkle: Math.random() * Math.PI * 2,
+        twinkleSpeed: Math.random() * 0.04 + 0.01
       });
     }
+
+    // Planets — 2 to 4, placed in corners/edges
+    planets = [];
+    const planetDefs = [
+      { x: w * 0.12, y: h * 0.18, r: Math.min(w,h)*0.07, color: '#c45a2a', ringColor: '#e07a4a', hasRing: true },
+      { x: w * 0.82, y: h * 0.28, r: Math.min(w,h)*0.045, color: '#3a6eaa', ringColor: null, hasRing: false },
+      { x: w * 0.75, y: h * 0.75, r: Math.min(w,h)*0.035, color: '#7a4a9a', ringColor: null, hasRing: false },
+    ];
+    planets = planetDefs;
+
+    // Nebula clouds — soft blobs in background
+    nebulaClouds = [];
+    for (let i = 0; i < 4; i++) {
+      nebulaClouds.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        rx: w * (0.15 + Math.random() * 0.2),
+        ry: h * (0.1 + Math.random() * 0.15),
+        hue: [200, 270, 180, 310][i],
+        alpha: 0.04 + Math.random() * 0.04
+      });
+    }
+
+    // Asteroids — small tumbling rocks
+    asteroids = [];
+    for (let i = 0; i < 6; i++) {
+      asteroids.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 4 + 2,
+        speed: Math.random() * 0.15 + 0.05,
+        angle: Math.random() * Math.PI * 2,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.03,
+        alpha: Math.random() * 0.4 + 0.2
+      });
+    }
+  }
+
+  function drawSpaceBackground(animate) {
+    const w = canvas.width, h = canvas.height;
+
+    // Nebula clouds first (deepest layer)
+    nebulaClouds.forEach(n => {
+      const grad = ctx2d.createRadialGradient(n.x, n.y, 0, n.x, n.y, Math.max(n.rx, n.ry));
+      grad.addColorStop(0, `hsla(${n.hue}, 70%, 40%, ${n.alpha})`);
+      grad.addColorStop(1, 'transparent');
+      ctx2d.save();
+      ctx2d.scale(1, n.ry / n.rx);
+      ctx2d.beginPath();
+      ctx2d.arc(n.x, n.y * (n.rx / n.ry), n.rx, 0, Math.PI * 2);
+      ctx2d.fillStyle = grad;
+      ctx2d.fill();
+      ctx2d.restore();
+    });
+
+    // Planets
+    planets.forEach(p => {
+      // Shadow/atmosphere glow
+      const atmo = ctx2d.createRadialGradient(p.x, p.y, p.r * 0.6, p.x, p.y, p.r * 1.4);
+      atmo.addColorStop(0, 'transparent');
+      atmo.addColorStop(1, p.color + '33');
+      ctx2d.beginPath();
+      ctx2d.arc(p.x, p.y, p.r * 1.4, 0, Math.PI * 2);
+      ctx2d.fillStyle = atmo;
+      ctx2d.fill();
+
+      // Planet body
+      const bodyGrad = ctx2d.createRadialGradient(p.x - p.r*0.3, p.y - p.r*0.3, p.r*0.1, p.x, p.y, p.r);
+      bodyGrad.addColorStop(0, lightenColor(p.color, 40));
+      bodyGrad.addColorStop(0.6, p.color);
+      bodyGrad.addColorStop(1, darkenColor(p.color, 40));
+      ctx2d.beginPath();
+      ctx2d.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx2d.fillStyle = bodyGrad;
+      ctx2d.fill();
+
+      // Surface stripes
+      ctx2d.save();
+      ctx2d.clip();
+      ctx2d.globalAlpha = 0.15;
+      for (let s = -1; s <= 1; s++) {
+        ctx2d.beginPath();
+        ctx2d.ellipse(p.x, p.y + s * p.r * 0.35, p.r, p.r * 0.12, 0, 0, Math.PI * 2);
+        ctx2d.fillStyle = '#ffffff';
+        ctx2d.fill();
+      }
+      ctx2d.globalAlpha = 1;
+      ctx2d.restore();
+
+      // Ring (Saturn-style)
+      if (p.hasRing) {
+        ctx2d.save();
+        ctx2d.globalAlpha = 0.5;
+        ctx2d.strokeStyle = p.ringColor;
+        ctx2d.lineWidth = p.r * 0.18;
+        ctx2d.beginPath();
+        ctx2d.ellipse(p.x, p.y, p.r * 1.7, p.r * 0.35, 0, 0, Math.PI * 2);
+        ctx2d.stroke();
+        ctx2d.globalAlpha = 1;
+        ctx2d.restore();
+      }
+    });
+
+    // Stars with twinkle
+    stars.forEach(s => {
+      if (animate && gamePhase === 'flying') {
+        s.x -= s.speed * currentMult * 0.25;
+        if (s.x < 0) s.x = w;
+      }
+      s.twinkle += s.twinkleSpeed;
+      const alpha = s.alpha * (0.7 + 0.3 * Math.sin(s.twinkle));
+      ctx2d.beginPath();
+      ctx2d.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx2d.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx2d.fill();
+    });
+
+    // Asteroids
+    asteroids.forEach(a => {
+      if (animate && gamePhase === 'flying') {
+        a.x -= a.speed * currentMult * 0.4;
+        if (a.x < -10) a.x = w + 10;
+        a.rot += a.rotSpeed;
+      }
+      ctx2d.save();
+      ctx2d.translate(a.x, a.y);
+      ctx2d.rotate(a.rot);
+      ctx2d.globalAlpha = a.alpha;
+      ctx2d.fillStyle = '#8a7a6a';
+      ctx2d.beginPath();
+      // Irregular polygon for asteroid shape
+      const sides = 7;
+      for (let i = 0; i < sides; i++) {
+        const ang = (i / sides) * Math.PI * 2;
+        const jitter = a.r * (0.7 + (((i * 137) % 7) / 7) * 0.6);
+        const px2 = Math.cos(ang) * jitter;
+        const py2 = Math.sin(ang) * jitter;
+        i === 0 ? ctx2d.moveTo(px2, py2) : ctx2d.lineTo(px2, py2);
+      }
+      ctx2d.closePath();
+      ctx2d.fill();
+      ctx2d.globalAlpha = 1;
+      ctx2d.restore();
+    });
+  }
+
+  function lightenColor(hex, amt) {
+    let n = parseInt(hex.slice(1), 16);
+    let r = Math.min(255, (n >> 16) + amt);
+    let g = Math.min(255, ((n >> 8) & 0xff) + amt);
+    let b = Math.min(255, (n & 0xff) + amt);
+    return `rgb(${r},${g},${b})`;
+  }
+  function darkenColor(hex, amt) {
+    let n = parseInt(hex.slice(1), 16);
+    let r = Math.max(0, (n >> 16) - amt);
+    let g = Math.max(0, ((n >> 8) & 0xff) - amt);
+    let b = Math.max(0, (n & 0xff) - amt);
+    return `rgb(${r},${g},${b})`;
   }
 
   // Particles trail
@@ -1236,7 +1416,7 @@
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    initStars();
+    initSpaceBackground();
   }
   resizeCanvas();
   window.addEventListener('resize', () => { resizeCanvas(); resetCanvas(); });
@@ -1294,18 +1474,6 @@
     return { px, py };
   }
 
-  function drawStars(flying) {
-    stars.forEach(s => {
-      if (flying && gamePhase === 'flying') {
-        s.x -= s.speed * currentMult * 0.3;
-        if (s.x < 0) s.x = canvas.width;
-      }
-      ctx2d.beginPath();
-      ctx2d.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx2d.fillStyle = `rgba(255,255,255,${s.alpha})`;
-      ctx2d.fill();
-    });
-  }
 
   function drawGrid() {
     const w = canvas.width, h = canvas.height;
@@ -1323,7 +1491,7 @@
     const w = canvas.width, h = canvas.height;
     ctx2d.clearRect(0, 0, w, h);
     drawGrid();
-    drawStars(true);
+    drawSpaceBackground(true);
 
     const progress = Math.min(Math.log(Math.max(mult, 1)) / Math.log(14), 1);
     const { px, py } = getCurvePos(progress);
@@ -1460,7 +1628,7 @@
     particles = [];
     ctx2d.clearRect(0, 0, w, h);
     drawGrid();
-    drawStars(false);
+    drawSpaceBackground(false);
     drawMultiplierOnCanvas();
     ctx2d.shadowBlur = 0;
     ctx2d.font = '24px serif';
@@ -1481,7 +1649,7 @@
       const w = canvas.width, h = canvas.height;
       ctx2d.clearRect(0, 0, w, h);
       drawGrid();
-      drawStars(false);
+      drawSpaceBackground(false);
 
       // Circular progress ring
       const sec = remaining / 1000;
