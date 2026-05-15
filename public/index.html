@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🚀 Paperplane Crash</title>
+  <title>🚀 Rocket Queen</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
@@ -244,6 +244,41 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    /* Bet inputs collapse smoothly during flight — no height jump */
+    .bet-inputs-wrap {
+      overflow: hidden;
+      max-height: 120px;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+    .bet-inputs-wrap.hidden {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .bet-tabs-wrap {
+      overflow: hidden;
+      max-height: 40px;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+    .bet-tabs-wrap.hidden {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .auto-row-wrap {
+      overflow: hidden;
+      max-height: 40px;
+      transition: max-height 0.2s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+    .auto-row-wrap.hidden {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
     }
 
     /* Double bet tabs */
@@ -631,7 +666,7 @@
 
 <!-- ══ AUTH ══ -->
 <div id="auth-screen">
-  <div class="auth-logo">🚀 PAPERPLANE</div>
+  <div class="auth-logo">🚀 ROCKET QUEEN</div>
   <div class="auth-sub">CRASH GAME</div>
   <input type="text" id="input-username" placeholder="Pseudo" autocomplete="off" />
   <input type="password" id="input-password" placeholder="Mot de passe" />
@@ -644,7 +679,7 @@
 <div id="game-screen">
 
   <div class="top-bar">
-    <div class="logo">🚀 PAPERPLANE</div>
+    <div class="logo">🚀 ROCKET QUEEN</div>
     <div class="top-stats">
       <span id="connected-count">👥 0</span>
       <span id="balance">💰 1000 $</span>
@@ -687,28 +722,32 @@
         </div>
 
         <!-- Bet tabs -->
-        <div class="bet-tabs">
-          <button class="bet-tab active" id="tab-bet1" onclick="showBetPanel(1)">🎯 MISE 1</button>
-          <button class="bet-tab" id="tab-bet2" onclick="showBetPanel(2)">➕ MISE 2</button>
+        <div class="bet-tabs-wrap" id="bet-tabs-wrap">
+          <div class="bet-tabs">
+            <button class="bet-tab active" id="tab-bet1" onclick="showBetPanel(1)">🎯 MISE 1</button>
+            <button class="bet-tab" id="tab-bet2" onclick="showBetPanel(2)">➕ MISE 2</button>
+          </div>
         </div>
 
         <!-- Bet 1 -->
         <div class="bet-panel visible" id="panel-bet1">
-          <div class="bet-input-wrap" style="margin-bottom:8px;">
-            <div class="amount-display">
-              <input type="number" id="bet-input" placeholder="50" value="50" min="1" />
-              <span class="currency">$</span>
-            </div>
-            <div class="quick-row">
-              <button class="q-btn" onclick="setQuick(1, 10)">10$</button>
-              <button class="q-btn" onclick="setQuick(1, 50)">50$</button>
-              <button class="q-btn" onclick="setQuick(1, 100)">100$</button>
-              <button class="q-btn" onclick="setQuick(1, 500)">500$</button>
-              <button class="q-btn" onclick="setMax(1)">MAX</button>
-            </div>
-            <div class="half-double">
-              <button class="hd-btn" onclick="halveBet(1)">½</button>
-              <button class="hd-btn" onclick="doubleBet(1)">×2</button>
+          <div class="bet-inputs-wrap" id="bet-inputs-wrap1">
+            <div class="bet-input-wrap" style="margin-bottom:8px;">
+              <div class="amount-display">
+                <input type="number" id="bet-input" placeholder="50" value="50" min="1" />
+                <span class="currency">$</span>
+              </div>
+              <div class="quick-row">
+                <button class="q-btn" onclick="setQuick(1, 10)">10$</button>
+                <button class="q-btn" onclick="setQuick(1, 50)">50$</button>
+                <button class="q-btn" onclick="setQuick(1, 100)">100$</button>
+                <button class="q-btn" onclick="setQuick(1, 500)">500$</button>
+                <button class="q-btn" onclick="setMax(1)">MAX</button>
+              </div>
+              <div class="half-double">
+                <button class="hd-btn" onclick="halveBet(1)">½</button>
+                <button class="hd-btn" onclick="doubleBet(1)">×2</button>
+              </div>
             </div>
           </div>
           <div class="main-btn-wrap">
@@ -719,21 +758,23 @@
 
         <!-- Bet 2 -->
         <div class="bet-panel" id="panel-bet2">
-          <div class="bet-input-wrap" style="margin-bottom:8px;">
-            <div class="amount-display bet2">
-              <input type="number" id="bet-input2" placeholder="50" value="50" min="1" />
-              <span class="currency" style="color:var(--blue)">$</span>
-            </div>
-            <div class="quick-row">
-              <button class="q-btn" onclick="setQuick(2, 10)">10$</button>
-              <button class="q-btn" onclick="setQuick(2, 50)">50$</button>
-              <button class="q-btn" onclick="setQuick(2, 100)">100$</button>
-              <button class="q-btn" onclick="setQuick(2, 500)">500$</button>
-              <button class="q-btn" onclick="setMax(2)">MAX</button>
-            </div>
-            <div class="half-double">
-              <button class="hd-btn" onclick="halveBet(2)">½</button>
-              <button class="hd-btn" onclick="doubleBet(2)">×2</button>
+          <div class="bet-inputs-wrap" id="bet-inputs-wrap2">
+            <div class="bet-input-wrap" style="margin-bottom:8px;">
+              <div class="amount-display bet2">
+                <input type="number" id="bet-input2" placeholder="50" value="50" min="1" />
+                <span class="currency" style="color:var(--blue)">$</span>
+              </div>
+              <div class="quick-row">
+                <button class="q-btn" onclick="setQuick(2, 10)">10$</button>
+                <button class="q-btn" onclick="setQuick(2, 50)">50$</button>
+                <button class="q-btn" onclick="setQuick(2, 100)">100$</button>
+                <button class="q-btn" onclick="setQuick(2, 500)">500$</button>
+                <button class="q-btn" onclick="setMax(2)">MAX</button>
+              </div>
+              <div class="half-double">
+                <button class="hd-btn" onclick="halveBet(2)">½</button>
+                <button class="hd-btn" onclick="doubleBet(2)">×2</button>
+              </div>
             </div>
           </div>
           <div class="main-btn-wrap">
@@ -743,15 +784,17 @@
         </div>
 
         <!-- Auto options -->
-        <div class="auto-row">
-          <div class="auto-pill">
-            <span class="auto-label">AUTO x</span>
-            <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1" />
-            <button class="auto-toggle" id="auto-toggle" onclick="toggleAuto()"></button>
-          </div>
-          <div class="auto-pill autobet-pill">
-            <span class="auto-label">AUTO BET</span>
-            <button class="auto-toggle" id="autobet-toggle" onclick="toggleAutoBet()"></button>
+        <div class="auto-row-wrap" id="auto-row-wrap">
+          <div class="auto-row">
+            <div class="auto-pill">
+              <span class="auto-label">AUTO x</span>
+              <input type="number" id="auto-cashout-input" placeholder="2.00" step="0.1" min="1.1" />
+              <button class="auto-toggle" id="auto-toggle" onclick="toggleAuto()"></button>
+            </div>
+            <div class="auto-pill autobet-pill">
+              <span class="auto-label">AUTO BET</span>
+              <button class="auto-toggle" id="autobet-toggle" onclick="toggleAutoBet()"></button>
+            </div>
           </div>
         </div>
 
@@ -1852,6 +1895,11 @@
     document.getElementById('bet-info').textContent = '';
     resetCanvas();
     updateBtn();
+    // Restore inputs
+    document.getElementById('bet-tabs-wrap').classList.remove('hidden');
+    document.getElementById('bet-inputs-wrap1').classList.remove('hidden');
+    document.getElementById('bet-inputs-wrap2').classList.remove('hidden');
+    document.getElementById('auto-row-wrap').classList.remove('hidden');
 
     // Canvas countdown
     const dur = data.duration || 5000;
@@ -1887,6 +1935,11 @@
     if (bettingAnimFrame) { cancelAnimationFrame(bettingAnimFrame); bettingAnimFrame = null; }
     document.getElementById('main-btn').classList.remove('btn-blink');
     document.getElementById('main-btn2').classList.remove('btn-blink');
+    // Collapse inputs smoothly
+    document.getElementById('bet-tabs-wrap').classList.add('hidden');
+    document.getElementById('bet-inputs-wrap1').classList.add('hidden');
+    document.getElementById('bet-inputs-wrap2').classList.add('hidden');
+    document.getElementById('auto-row-wrap').classList.add('hidden');
     startEngine(1.0);
     updateBtn();
   });
