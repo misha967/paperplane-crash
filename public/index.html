@@ -406,21 +406,43 @@
     }
 
     /* MAIN BUTTON */
+    .main-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+    }
     #main-btn, #main-btn2 {
-      padding: 12px 14px;
-      border-radius: 10px;
+      width: 100%;
+      padding: 15px 14px;
+      border-radius: 12px;
       border: none;
       font-family: var(--font-main);
-      font-size: 1rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       cursor: pointer;
       transition: all 0.15s;
-      flex-shrink: 0;
-      align-self: stretch;
-      min-width: 100px;
     }
     #main-btn:active, #main-btn2:active { transform: scale(0.97); }
+    #live-gain {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--green);
+      text-align: center;
+      min-height: 1.4rem;
+      letter-spacing: 0.5px;
+    }
+    #live-gain2 {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--blue);
+      text-align: center;
+      min-height: 1.2rem;
+    }
 
     /* Status row */
     .status-row {
@@ -672,49 +694,51 @@
 
         <!-- Bet 1 -->
         <div class="bet-panel visible" id="panel-bet1">
-          <div class="bet-area">
-            <div class="bet-input-wrap">
-              <div class="amount-display">
-                <input type="number" id="bet-input" placeholder="50" value="50" min="1" />
-                <span class="currency">$</span>
-              </div>
-              <div class="quick-row">
-                <button class="q-btn" onclick="setQuick(1, 10)">10$</button>
-                <button class="q-btn" onclick="setQuick(1, 50)">50$</button>
-                <button class="q-btn" onclick="setQuick(1, 100)">100$</button>
-                <button class="q-btn" onclick="setQuick(1, 500)">500$</button>
-                <button class="q-btn" onclick="setMax(1)">MAX</button>
-              </div>
-              <div class="half-double">
-                <button class="hd-btn" onclick="halveBet(1)">½</button>
-                <button class="hd-btn" onclick="doubleBet(1)">×2</button>
-              </div>
+          <div class="bet-input-wrap" style="margin-bottom:8px;">
+            <div class="amount-display">
+              <input type="number" id="bet-input" placeholder="50" value="50" min="1" />
+              <span class="currency">$</span>
             </div>
+            <div class="quick-row">
+              <button class="q-btn" onclick="setQuick(1, 10)">10$</button>
+              <button class="q-btn" onclick="setQuick(1, 50)">50$</button>
+              <button class="q-btn" onclick="setQuick(1, 100)">100$</button>
+              <button class="q-btn" onclick="setQuick(1, 500)">500$</button>
+              <button class="q-btn" onclick="setMax(1)">MAX</button>
+            </div>
+            <div class="half-double">
+              <button class="hd-btn" onclick="halveBet(1)">½</button>
+              <button class="hd-btn" onclick="doubleBet(1)">×2</button>
+            </div>
+          </div>
+          <div class="main-btn-wrap">
             <button id="main-btn" onclick="mainAction(1)">✅ MISER</button>
+            <div id="live-gain"></div>
           </div>
         </div>
 
         <!-- Bet 2 -->
         <div class="bet-panel" id="panel-bet2">
-          <div class="bet-area">
-            <div class="bet-input-wrap">
-              <div class="amount-display bet2">
-                <input type="number" id="bet-input2" placeholder="50" value="50" min="1" />
-                <span class="currency" style="color:var(--blue)">$</span>
-              </div>
-              <div class="quick-row">
-                <button class="q-btn" onclick="setQuick(2, 10)">10$</button>
-                <button class="q-btn" onclick="setQuick(2, 50)">50$</button>
-                <button class="q-btn" onclick="setQuick(2, 100)">100$</button>
-                <button class="q-btn" onclick="setQuick(2, 500)">500$</button>
-                <button class="q-btn" onclick="setMax(2)">MAX</button>
-              </div>
-              <div class="half-double">
-                <button class="hd-btn" onclick="halveBet(2)">½</button>
-                <button class="hd-btn" onclick="doubleBet(2)">×2</button>
-              </div>
+          <div class="bet-input-wrap" style="margin-bottom:8px;">
+            <div class="amount-display bet2">
+              <input type="number" id="bet-input2" placeholder="50" value="50" min="1" />
+              <span class="currency" style="color:var(--blue)">$</span>
             </div>
+            <div class="quick-row">
+              <button class="q-btn" onclick="setQuick(2, 10)">10$</button>
+              <button class="q-btn" onclick="setQuick(2, 50)">50$</button>
+              <button class="q-btn" onclick="setQuick(2, 100)">100$</button>
+              <button class="q-btn" onclick="setQuick(2, 500)">500$</button>
+              <button class="q-btn" onclick="setMax(2)">MAX</button>
+            </div>
+            <div class="half-double">
+              <button class="hd-btn" onclick="halveBet(2)">½</button>
+              <button class="hd-btn" onclick="doubleBet(2)">×2</button>
+            </div>
+          </div>
+          <div class="main-btn-wrap">
             <button id="main-btn2" onclick="mainAction(2)">✅ MISER 2</button>
+            <div id="live-gain2"></div>
           </div>
         </div>
 
@@ -1873,19 +1897,38 @@
     drawFlight(currentMult);
     updateEngine(currentMult);
 
+    // Live gain under buttons
+    if (hasBet) {
+      const total = (currentBet * currentMult).toFixed(2);
+      const profit = (currentBet * currentMult - currentBet).toFixed(2);
+      document.getElementById('live-gain').textContent =
+        '💰 ' + total + '$ (+' + profit + '$)';
+    } else {
+      document.getElementById('live-gain').textContent = '';
+    }
+    if (hasBet2) {
+      const total2 = (currentBet2 * currentMult).toFixed(2);
+      const profit2 = (currentBet2 * currentMult - currentBet2).toFixed(2);
+      document.getElementById('live-gain2').textContent =
+        '💰 ' + total2 + '$ (+' + profit2 + '$)';
+    } else {
+      document.getElementById('live-gain2').textContent = '';
+    }
+
+    // Legacy bet-info (keep for mobile/sidebar)
     if (hasBet || hasBet2) {
       let parts = [];
       if (hasBet) parts.push(currentBet + '$ → ' + (currentBet * currentMult).toFixed(0) + '$');
       if (hasBet2) parts.push(currentBet2 + '$ → ' + (currentBet2 * currentMult).toFixed(0) + '$');
       document.getElementById('bet-info').textContent = parts.join('  |  ');
+    }
 
-      // Auto cashout
-      if (autoEnabled) {
-        const target = parseFloat(document.getElementById('auto-cashout-input').value);
-        if (target && currentMult >= target) {
-          if (hasBet) socket.emit('cashout', { token, which: 1 });
-          if (hasBet2) socket.emit('cashout', { token, which: 2 });
-        }
+    // Auto cashout
+    if (autoEnabled) {
+      const target = parseFloat(document.getElementById('auto-cashout-input').value);
+      if (target && currentMult >= target) {
+        if (hasBet) socket.emit('cashout', { token, which: 1 });
+        if (hasBet2) socket.emit('cashout', { token, which: 2 });
       }
     }
   });
@@ -1897,6 +1940,8 @@
     document.getElementById('multiplier').style.textShadow = '0 0 40px var(--red-dim)';
     document.getElementById('status-text').textContent = '💥 CRASH !';
     hasBet = false; hasBet2 = false;
+    document.getElementById('live-gain').textContent = '';
+    document.getElementById('live-gain2').textContent = '';
     updateBtn();
     if (data.crashHistory) updateCrashHistory(data.crashHistory);
     // Trigger explosion at plane position
@@ -1922,8 +1967,8 @@
 
   socket.on('cashout_success', (data) => {
     balance = data.balance;
-    if (data.which === 1) hasBet = false;
-    else hasBet2 = false;
+    if (data.which === 1) { hasBet = false; document.getElementById('live-gain').textContent = ''; }
+    else { hasBet2 = false; document.getElementById('live-gain2').textContent = ''; }
     document.getElementById('balance').textContent = '💰 ' + balance + ' $';
     showMsg('💸 x' + data.multiplier.toFixed(2) + ' +' + data.profit.toFixed(0) + '$', 'var(--green)');
     // Update chart
