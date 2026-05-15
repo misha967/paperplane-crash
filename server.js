@@ -15,7 +15,7 @@ const SECRET = 'paperplane_secret';
 const users = {};
 const gameState = {
   multiplier: 1.0,
-  phase: 'waiting', // 'betting', 'flying', 'crashed'
+  phase: 'waiting',
   bets: {}
 };
 
@@ -41,28 +41,4 @@ function startBetting() {
   gameState.phase = 'betting';
   gameState.bets = {};
   gameState.multiplier = 1.0;
-  io.emit('betting_phase', { duration: 5000 });
-  setTimeout(startFlying, 5000);
-}
-
-function startFlying() {
-  gameState.phase = 'flying';
-  const crashPoint = Math.max(1.1, -Math.log(Math.random()) * 2);
-  io.emit('game_start');
-
-  const interval = setInterval(() => {
-    gameState.multiplier = parseFloat((gameState.multiplier * 1.02).toFixed(2));
-    io.emit('multiplier_update', { multiplier: gameState.multiplier });
-
-    if (gameState.multiplier >= crashPoint) {
-      clearInterval(interval);
-      gameState.phase = 'crashed';
-      io.emit('game_crash', { crashAt: gameState.multiplier });
-
-      // Perte pour ceux qui n'ont pas cashout (balance déjà déduite à la mise)
-      setTimeout(startBetting, 3000);
-    }
-  }, 100);
-}
-
-io.on('connection', (socket) => {
+  
