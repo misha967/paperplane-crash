@@ -1196,7 +1196,7 @@
   let asteroids = [];
 
   function initSpaceBackground() {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
 
     // Stars — 3 layers of depth
     stars = [];
@@ -1251,7 +1251,7 @@
   }
 
   function drawSpaceBackground(animate) {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
 
     // Nebula clouds first (deepest layer)
     nebulaClouds.forEach(n => {
@@ -1413,13 +1413,28 @@
     });
   }
 
+  // CSS dimensions (independent of DPI) — use these for all draw coordinate logic
+  function cW() { return canvas.offsetWidth; }
+  function cH() { return canvas.offsetHeight; }
+
   function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth;
+    const cssH = canvas.offsetHeight;
+    // Set actual pixel buffer at full DPI
+    canvas.width  = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    // Scale all draw calls so coordinates stay in CSS pixels
+    ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
     initSpaceBackground();
   }
   resizeCanvas();
-  window.addEventListener('resize', () => { resizeCanvas(); resetCanvas(); });
+  // Only resize on orientation change, not scroll/keyboard on mobile
+  window.addEventListener('resize', () => {
+    // Debounce to avoid jitter from mobile keyboard
+    clearTimeout(window._resizeTimer);
+    window._resizeTimer = setTimeout(() => { resizeCanvas(); resetCanvas(); }, 200);
+  });
 
   // Crash explosion
   let explosionParticles = [];
@@ -1465,7 +1480,7 @@
   let flightPoints = [];
 
   function getCurvePos(progress) {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
     const margin = 30;
     // Exponential curve: starts shallow, gets steep
     const t = Math.pow(progress, 0.7);
@@ -1476,7 +1491,7 @@
 
 
   function drawGrid() {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
     ctx2d.strokeStyle = '#191932';
     ctx2d.lineWidth = 1;
     for (let x = 0; x < w; x += 45) {
@@ -1488,7 +1503,7 @@
   }
 
   function drawFlight(mult) {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
     ctx2d.clearRect(0, 0, w, h);
     drawGrid();
     drawSpaceBackground(true);
@@ -1560,7 +1575,7 @@
   }
 
   function drawMultiplierOnCanvas() {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
     const multEl = document.getElementById('multiplier');
     const text = multEl.textContent;
     const colorAttr = multEl.style.color || '';
@@ -1605,7 +1620,7 @@
     ctx2d.rotate(angle);
 
     // Stable glow: fixed radial gradient, no randomness, no shadowBlur
-    const size = Math.max(20, Math.min(28, canvas.width / 22));
+    const size = Math.max(20, Math.min(28, cW() / 22));
     const glowR = ctx2d.createRadialGradient(0, 0, 0, 0, 0, size * 1.2);
     glowR.addColorStop(0, 'rgba(0,240,160,0.25)');
     glowR.addColorStop(1, 'rgba(0,240,160,0)');
@@ -1623,7 +1638,7 @@
   }
 
   function resetCanvas() {
-    const w = canvas.width, h = canvas.height;
+    const w = cW(), h = cH();
     flightPoints = [];
     particles = [];
     ctx2d.clearRect(0, 0, w, h);
@@ -1646,7 +1661,7 @@
     function loop() {
       if (gamePhase !== 'betting') return;
       const remaining = Math.max(0, bettingEndTime - performance.now());
-      const w = canvas.width, h = canvas.height;
+      const w = cW(), h = cH();
       ctx2d.clearRect(0, 0, w, h);
       drawGrid();
       drawSpaceBackground(false);
