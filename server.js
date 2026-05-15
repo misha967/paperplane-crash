@@ -39,6 +39,4 @@ app.post('/login', async (req, res) => {
 
 function startBetting() {
   gameState.phase = 'betting';
-  gameState.bets = {};
-  gameState.multiplier = 1.0;
-  
+  gameState
